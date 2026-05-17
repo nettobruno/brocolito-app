@@ -89,51 +89,77 @@ export default function HomeScreen() {
       {loading ? <ActivityIndicator color={colors.primary} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Card style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View>
-            <Text style={styles.heroLabel}>Peso atual</Text>
-            <Text style={styles.heroValue}>{formatNumber(latestMeasurement?.weight_kg, " kg")}</Text>
+      <Pressable
+        accessibilityHint="Abre a tela de histórico de medições."
+        accessibilityLabel="Peso atual. Ver histórico de medições."
+        accessibilityRole="button"
+        onPress={() => router.push("/history")}
+        style={({ pressed }) => pressed && styles.cardPressed}
+      >
+        <Card style={styles.heroCard}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroValueBlock}>
+              <Text style={styles.heroLabel}>Peso atual</Text>
+              <Text style={styles.heroValue}>{formatNumber(latestMeasurement?.weight_kg, " kg")}</Text>
+            </View>
+            <View style={styles.heroIcon}>
+              <Ionicons name="barbell-outline" size={26} color={colors.white} />
+            </View>
           </View>
-          <View style={styles.heroIcon}>
-            <Ionicons name="barbell-outline" size={26} color={colors.white} />
+          <View style={styles.heroDivider} />
+          <View style={styles.heroMetaRow}>
+            <View style={styles.heroMetaItem}>
+              <Text style={styles.heroMetaLabel}>Altura</Text>
+              <Text style={styles.heroMetaValue}>{formatNumber(latestMeasurement?.height_cm, " cm")}</Text>
+            </View>
+            <View style={styles.heroMetaItem}>
+              <Text style={styles.heroMetaLabel}>Última medição</Text>
+              <Text style={styles.heroMetaValue}>
+                {latestMeasurement ? formatMeasurementDate(latestMeasurement) : "Sem registro"}
+              </Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.heroDivider} />
-        <View style={styles.heroMetaRow}>
-          <View style={styles.heroMetaItem}>
-            <Text style={styles.heroMetaLabel}>Altura</Text>
-            <Text style={styles.heroMetaValue}>{formatNumber(latestMeasurement?.height_cm, " cm")}</Text>
+          <View style={styles.heroAction}>
+            <Text style={styles.heroActionText}>Ver histórico</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.white} />
           </View>
-          <View style={styles.heroMetaItem}>
-            <Text style={styles.heroMetaLabel}>Última medição</Text>
-            <Text style={styles.heroMetaValue}>
-              {latestMeasurement ? formatMeasurementDate(latestMeasurement) : "Sem registro"}
-            </Text>
-          </View>
-        </View>
-      </Card>
+        </Card>
+      </Pressable>
 
-      <Card style={styles.progressCard}>
-        <View style={styles.progressHeader}>
-          <View style={styles.progressIcon}>
-            <Ionicons name="trending-up-outline" size={22} color={colors.accent} />
+      <Pressable
+        accessibilityHint="Abre a tela de comparativo corporal."
+        accessibilityLabel="Evolução corporal. Abrir comparativo."
+        accessibilityRole="button"
+        onPress={() => router.push("/compare")}
+        style={({ pressed }) => pressed && styles.cardPressed}
+      >
+        <Card style={styles.progressCard}>
+          <View style={styles.progressHeader}>
+            <View style={styles.progressIcon}>
+              <Ionicons name="trending-up-outline" size={22} color={colors.accent} />
+            </View>
+            <View style={styles.progressCopy}>
+              <View style={styles.progressTitleRow}>
+                <Text style={styles.cardTitle}>Evolução</Text>
+                <View style={styles.progressActionPill}>
+                  <Text style={styles.progressActionText}>Comparativo</Text>
+                  <Ionicons name="chevron-forward" size={15} color={colors.accent} />
+                </View>
+              </View>
+              <Text style={styles.cardText}>
+                {progressMessage
+                  ? progressMessage.text
+                  : hasComparison
+                    ? "Seu comparativo já está pronto para consulta."
+                    : "Cadastre ao menos duas medições para visualizar seu progresso."}
+              </Text>
+              {user?.weight_goal ? (
+                <Text style={styles.goalText}>Objetivo: {weightGoalLabel(user.weight_goal)}</Text>
+              ) : null}
+            </View>
           </View>
-          <View style={styles.progressCopy}>
-            <Text style={styles.cardTitle}>Evolução</Text>
-            <Text style={styles.cardText}>
-              {progressMessage
-                ? progressMessage.text
-                : hasComparison
-                  ? "Seu comparativo já está pronto para consulta."
-                  : "Cadastre ao menos duas medições para visualizar seu progresso."}
-            </Text>
-            {user?.weight_goal ? (
-              <Text style={styles.goalText}>Objetivo: {weightGoalLabel(user.weight_goal)}</Text>
-            ) : null}
-          </View>
-        </View>
-      </Card>
+        </Card>
+      </Pressable>
 
       <Text style={styles.sectionTitle}>Ações rápidas</Text>
       <View style={styles.actions}>
@@ -204,6 +230,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 16,
   },
+  heroValueBlock: {
+    flex: 1,
+  },
   heroLabel: {
     color: "rgba(255, 255, 255, 0.82)",
     fontFamily: fontFamily.semiBold,
@@ -246,6 +275,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 5,
   },
+  heroAction: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    gap: 4,
+    marginTop: 18,
+  },
+  heroActionText: {
+    color: colors.white,
+    fontFamily: fontFamily.extraBold,
+    fontSize: 14,
+  },
   progressCard: {
     marginTop: 14,
   },
@@ -264,6 +305,27 @@ const styles = StyleSheet.create({
   },
   progressCopy: {
     flex: 1,
+  },
+  progressTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "space-between",
+  },
+  progressActionPill: {
+    alignItems: "center",
+    backgroundColor: "rgba(185, 100, 48, 0.1)",
+    borderRadius: 999,
+    flexDirection: "row",
+    gap: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  progressActionText: {
+    color: colors.accent,
+    fontFamily: fontFamily.extraBold,
+    fontSize: 12,
   },
   cardTitle: {
     color: colors.title,
@@ -314,6 +376,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.82,
+  },
+  cardPressed: {
+    opacity: 0.86,
   },
   error: {
     color: colors.danger,

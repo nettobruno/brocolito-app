@@ -13,15 +13,21 @@ import { fontFamily } from "@/src/theme/typography";
 
 type InputProps = TextInputProps & {
   label?: string;
+  labelAccessory?: ReactNode;
   error?: string;
   keyboardType?: KeyboardTypeOptions;
   rightElement?: ReactNode;
 };
 
-export function Input({ label, error, rightElement, style, ...props }: InputProps) {
+export function Input({ label, labelAccessory, error, rightElement, style, ...props }: InputProps) {
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <View style={styles.labelRow}>
+          <Text style={styles.label}>{label}</Text>
+          {labelAccessory}
+        </View>
+      ) : null}
       <View style={[styles.inputShell, error && styles.inputError]}>
         <TextInput
           placeholderTextColor={colors.textMuted}
@@ -40,6 +46,11 @@ const styles = StyleSheet.create({
     gap: 7,
     marginBottom: 14,
     width: "100%",
+  },
+  labelRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 6,
   },
   label: {
     color: colors.title,
