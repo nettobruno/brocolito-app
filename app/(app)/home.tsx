@@ -78,7 +78,7 @@ export default function HomeScreen() {
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerText}>
           <Text style={styles.eyebrow}>BROCOLITO</Text>
           <Text style={styles.greeting}>Olá, {user?.name ?? "Brocolito"}</Text>
           <Text style={styles.subtitle}>Seu acompanhamento corporal em um só lugar.</Text>
@@ -170,6 +170,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 22,
     gap: 18,
+  },
+  headerText: {
+    flex: 1,
   },
   eyebrow: {
     color: colors.accent,
