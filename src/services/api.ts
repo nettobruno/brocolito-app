@@ -7,7 +7,7 @@ import {
   WeightGoal,
 } from "@/src/types";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
 let authToken: string | null = null;
 
@@ -77,6 +77,10 @@ function translateErrorMessage(message: string): string {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
+
+  if (!API_BASE_URL) {
+    throw new Error("Configure a variável EXPO_PUBLIC_API_BASE_URL para conectar à API.");
+  }
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
