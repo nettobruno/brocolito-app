@@ -175,6 +175,7 @@ export default function HomeScreen() {
         <ActionCard icon="add-circle-outline" title="Nova medição" onPress={() => router.push("/new-measurement")} />
         <ActionCard icon="list-outline" title="Histórico" onPress={() => router.push("/history")} />
         <ActionCard icon="stats-chart-outline" title="Comparativo" onPress={() => router.push("/compare")} />
+        <ActionCard icon="calendar-outline" title="Calendário" onPress={() => router.push("/check-in-calendar")} />
         <ActionCard icon="person-outline" title="Perfil" onPress={() => router.push("/profile")} />
       </View>
     </ScreenContainer>

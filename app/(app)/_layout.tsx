@@ -22,6 +22,7 @@ export default function AppLayout() {
     >
       <Stack.Screen name="home" options={{ headerShown: false }} />
       <Stack.Screen name="check-in" options={{ title: "Check-in" }} />
+      <Stack.Screen name="check-in-calendar" options={{ title: "Calendário" }} />
       <Stack.Screen name="new-measurement" options={{ title: "Nova medição" }} />
       <Stack.Screen name="history" options={{ title: "Histórico" }} />
       <Stack.Screen name="compare" options={{ title: "Comparativo" }} />
