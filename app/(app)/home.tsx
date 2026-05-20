@@ -11,7 +11,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/services/api";
 import { colors } from "@/src/theme/colors";
 import { fontFamily } from "@/src/theme/typography";
-import { BodyMeasurement } from "@/src/types";
+import { BodyMeasurement, TrainingCheckIn } from "@/src/types";
 import { buildWeightGoalProgressMessage, weightGoalLabel } from "@/src/utils/goals";
 import { formatMeasurementDate, formatNumber, getLatestMeasurement } from "@/src/utils/measurements";
 
@@ -19,6 +19,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const [measurements, setMeasurements] = useState<BodyMeasurement[]>([]);
   const [compare, setCompare] = useState<Record<string, unknown> | null>(null);
+  const [todayCheckIn, setTodayCheckIn] = useState<TrainingCheckIn | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -30,9 +31,10 @@ export default function HomeScreen() {
         try {
           setLoading(true);
           setError("");
-          const [measurementsResult, compareResult] = await Promise.allSettled([
+          const [measurementsResult, compareResult, checkInResult] = await Promise.allSettled([
             api.listMeasurements(),
             api.compareMeasurements(),
+            api.getTodayTrainingCheckIn(),
           ]);
 
           if (!isActive) {
@@ -47,9 +49,14 @@ export default function HomeScreen() {
             setCompare(compareResult.value);
           }
 
+          if (checkInResult.status === "fulfilled") {
+            setTodayCheckIn(checkInResult.value);
+          }
+
           if (measurementsResult.status === "rejected") {
             throw measurementsResult.reason;
           }
+
         } catch (dashboardError) {
           setError(
             dashboardError instanceof Error
@@ -88,6 +95,8 @@ export default function HomeScreen() {
 
       {loading ? <ActivityIndicator color={colors.primary} /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <CheckInSummaryCard checkIn={todayCheckIn} loading={loading} />
 
       <Pressable
         accessibilityHint="Abre a tela de histórico de medições."
@@ -169,6 +178,51 @@ export default function HomeScreen() {
         <ActionCard icon="person-outline" title="Perfil" onPress={() => router.push("/profile")} />
       </View>
     </ScreenContainer>
+  );
+}
+
+function CheckInSummaryCard({
+  checkIn,
+  loading,
+}: {
+  checkIn: TrainingCheckIn | null;
+  loading: boolean;
+}) {
+  const isCheckedIn = Boolean(checkIn?.checked_in);
+  const title = isCheckedIn ? "Check-in realizado" : "Faça seu check-in";
+  const statusText = loading
+    ? "Carregando status de hoje..."
+    : isCheckedIn
+      ? checkIn?.trained
+        ? "Treino de hoje registrado."
+        : "Descanso de hoje registrado."
+      : "Conte como foi seu treino de hoje.";
+
+  return (
+    <Pressable
+      accessibilityHint="Abre a tela para registrar ou editar o check-in de hoje."
+      accessibilityLabel={title}
+      accessibilityRole="button"
+      onPress={() => router.push("/check-in")}
+      style={({ pressed }) => pressed && styles.cardPressed}
+    >
+      <Card style={styles.checkInCard}>
+        <View style={styles.checkInHeader}>
+          <View style={[styles.checkInIcon, isCheckedIn && styles.checkInIconDone]}>
+            <Ionicons
+              name={isCheckedIn ? "checkmark" : "checkmark-circle-outline"}
+              size={24}
+              color={colors.white}
+            />
+          </View>
+          <View style={styles.checkInCopy}>
+            <Text style={styles.cardTitle}>{title}</Text>
+            <Text style={styles.cardText}>{statusText}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.primary} />
+        </View>
+      </Card>
+    </Pressable>
   );
 }
 
@@ -289,6 +343,28 @@ const styles = StyleSheet.create({
   },
   progressCard: {
     marginTop: 14,
+  },
+  checkInCard: {
+    marginBottom: 14,
+  },
+  checkInHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 14,
+  },
+  checkInIcon: {
+    alignItems: "center",
+    backgroundColor: colors.accent,
+    borderRadius: 999,
+    height: 46,
+    justifyContent: "center",
+    width: 46,
+  },
+  checkInIconDone: {
+    backgroundColor: colors.primary,
+  },
+  checkInCopy: {
+    flex: 1,
   },
   progressHeader: {
     alignItems: "center",

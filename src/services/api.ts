@@ -3,6 +3,8 @@ import {
   BodyMeasurement,
   LoginResponse,
   MeasurementPayload,
+  TrainingCheckIn,
+  TrainingCheckInPayload,
   User,
   WeightGoal,
 } from "@/src/types";
@@ -173,5 +175,31 @@ export const api = {
 
   compareMeasurements() {
     return request<Record<string, unknown>>("/body_measurements/compare");
+  },
+
+  getTodayTrainingCheckIn() {
+    return request<TrainingCheckIn>("/training_check_ins/today");
+  },
+
+  saveTodayTrainingCheckIn(training_check_in: TrainingCheckInPayload) {
+    return request<TrainingCheckIn>("/training_check_ins/today", {
+      method: "POST",
+      body: JSON.stringify({ training_check_in }),
+    });
+  },
+
+  listTrainingCheckIns(params?: { startDate?: string; endDate?: string }) {
+    const searchParams = new URLSearchParams();
+
+    if (params?.startDate) {
+      searchParams.set("start_date", params.startDate);
+    }
+
+    if (params?.endDate) {
+      searchParams.set("end_date", params.endDate);
+    }
+
+    const query = searchParams.toString();
+    return request<TrainingCheckIn[]>(`/training_check_ins${query ? `?${query}` : ""}`);
   },
 };

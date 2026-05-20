@@ -1,5 +1,14 @@
 export type WeightGoal = "lose_weight" | "gain_weight";
 
+export type TrainingActivity =
+  | "strength"
+  | "cardio"
+  | "pilates"
+  | "muay_thai"
+  | "running"
+  | "walking"
+  | "other";
+
 export type User = {
   id: number;
   name: string;
@@ -30,6 +39,24 @@ export type MeasurementPayload = Omit<
   BodyMeasurement,
   "id" | "created_at" | "updated_at"
 >;
+
+export type TrainingCheckIn = {
+  id?: number;
+  user_id?: number;
+  date: string;
+  trained: boolean;
+  activities: TrainingActivity[];
+  notes?: string | null;
+  checked_in?: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type TrainingCheckInPayload = {
+  trained: boolean;
+  activities: TrainingActivity[];
+  notes?: string | null;
+};
 
 export type LoginResponse = {
   token: string;
