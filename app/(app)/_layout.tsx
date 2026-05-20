@@ -26,6 +26,9 @@ export default function AppLayout() {
       <Stack.Screen name="new-measurement" options={{ title: "Nova medição" }} />
       <Stack.Screen name="history" options={{ title: "Histórico" }} />
       <Stack.Screen name="compare" options={{ title: "Comparativo" }} />
+      <Stack.Screen name="groups" options={{ title: "Grupos" }} />
+      <Stack.Screen name="new-group" options={{ title: "Novo grupo" }} />
+      <Stack.Screen name="groups/[id]" options={{ title: "Grupo" }} />
       <Stack.Screen name="profile" options={{ title: "Perfil" }} />
       <Stack.Screen name="measurements/[id]" options={{ title: "Medição" }} />
     </Stack>

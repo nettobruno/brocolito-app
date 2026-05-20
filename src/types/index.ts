@@ -58,6 +58,49 @@ export type TrainingCheckInPayload = {
   notes?: string | null;
 };
 
+export type PublicUser = Pick<User, "id" | "name" | "email">;
+
+export type CompetitionGroupPayload = {
+  name: string;
+  description?: string | null;
+  ends_on?: string | null;
+};
+
+export type CompetitionGroupMember = PublicUser & {
+  role: "owner" | "member";
+};
+
+export type CompetitionGroupRankingEntry = {
+  position: number;
+  trained_check_ins: number;
+  total_check_ins: number;
+  user: PublicUser;
+};
+
+export type GroupInvitation = {
+  id: number;
+  status: "pending" | "accepted" | "declined";
+  created_at?: string;
+  responded_at?: string | null;
+  competition_group: Pick<CompetitionGroup, "id" | "name" | "description" | "ends_on">;
+  invitee: PublicUser;
+  inviter: PublicUser;
+};
+
+export type CompetitionGroup = {
+  id: number;
+  name: string;
+  description?: string | null;
+  ends_on?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  owner: PublicUser;
+  member_count: number;
+  members?: CompetitionGroupMember[];
+  ranking?: CompetitionGroupRankingEntry[];
+  pending_invitations?: GroupInvitation[];
+};
+
 export type LoginResponse = {
   token: string;
   user: User;

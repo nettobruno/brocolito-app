@@ -1,6 +1,9 @@
 import {
   ApiErrorPayload,
   BodyMeasurement,
+  CompetitionGroup,
+  CompetitionGroupPayload,
+  GroupInvitation,
   LoginResponse,
   MeasurementPayload,
   TrainingCheckIn,
@@ -201,5 +204,43 @@ export const api = {
 
     const query = searchParams.toString();
     return request<TrainingCheckIn[]>(`/training_check_ins${query ? `?${query}` : ""}`);
+  },
+
+  listCompetitionGroups() {
+    return request<CompetitionGroup[]>("/competition_groups");
+  },
+
+  createCompetitionGroup(competition_group: CompetitionGroupPayload) {
+    return request<CompetitionGroup>("/competition_groups", {
+      method: "POST",
+      body: JSON.stringify({ competition_group }),
+    });
+  },
+
+  getCompetitionGroup(id: string | number) {
+    return request<CompetitionGroup>(`/competition_groups/${id}`);
+  },
+
+  inviteToCompetitionGroup(id: string | number, email: string) {
+    return request<GroupInvitation>(`/competition_groups/${id}/invitations`, {
+      method: "POST",
+      body: JSON.stringify({ invitation: { email } }),
+    });
+  },
+
+  listGroupInvitations() {
+    return request<GroupInvitation[]>("/group_invitations");
+  },
+
+  acceptGroupInvitation(id: string | number) {
+    return request<GroupInvitation>(`/group_invitations/${id}/accept`, {
+      method: "POST",
+    });
+  },
+
+  declineGroupInvitation(id: string | number) {
+    return request<GroupInvitation>(`/group_invitations/${id}/decline`, {
+      method: "POST",
+    });
   },
 };
