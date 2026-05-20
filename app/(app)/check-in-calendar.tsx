@@ -52,16 +52,18 @@ function formatMonthTitle(date: Date) {
   }).format(date);
 }
 
-function formatDateLabel(dateKey: string) {
+function formatLongDateLabel(dateKey: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
-    month: "2-digit",
+    month: "long",
+    weekday: "long",
   }).format(new Date(`${dateKey}T00:00:00`));
 }
 
 export default function CheckInCalendarScreen() {
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [checkIns, setCheckIns] = useState<TrainingCheckIn[]>([]);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -100,11 +102,13 @@ export default function CheckInCalendarScreen() {
     return new Map(checkIns.map((checkIn) => [checkIn.date, checkIn]));
   }, [checkIns]);
   const days = useMemo(() => buildMonthDays(visibleMonth), [visibleMonth]);
+  const selectedCheckIn = selectedDateKey ? checkInsByDate.get(selectedDateKey) : undefined;
   const trainedCount = checkIns.filter((checkIn) => checkIn.trained).length;
   const restCount = checkIns.length - trainedCount;
 
   function changeMonth(offset: number) {
     setVisibleMonth((currentMonth) => new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1));
+    setSelectedDateKey(null);
   }
 
   return (
@@ -153,32 +157,58 @@ export default function CheckInCalendarScreen() {
             const checkIn = checkInsByDate.get(day.dateKey);
             const isToday = day.dateKey === toDateKey(new Date());
             const hasCheckIn = Boolean(checkIn);
+            const isSelected = selectedDateKey === day.dateKey;
 
             return (
-              <View
-                key={day.dateKey}
-                style={[
-                  styles.dayCell,
-                  !day.inCurrentMonth && styles.dayCellMuted,
-                  isToday && styles.dayCellToday,
-                  hasCheckIn && styles.dayCellChecked,
-                  checkIn?.trained && styles.dayCellTrained,
-                ]}
-              >
-                <Text
+              <View key={day.dateKey} style={styles.daySlot}>
+                <Pressable
+                  accessibilityLabel={`${formatLongDateLabel(day.dateKey)}${
+                    hasCheckIn ? ", check-in registrado" : ", sem check-in"
+                  }`}
+                  accessibilityRole="button"
+                  onPress={() => setSelectedDateKey(day.dateKey)}
                   style={[
-                    styles.dayText,
-                    !day.inCurrentMonth && styles.dayTextMuted,
-                    checkIn?.trained && styles.dayTextTrained,
+                    styles.dayCell,
+                    !day.inCurrentMonth && styles.dayCellMuted,
+                    isToday && styles.dayCellToday,
+                    hasCheckIn && styles.dayCellChecked,
+                    checkIn?.trained && styles.dayCellTrained,
+                    isSelected && styles.dayCellSelected,
                   ]}
                 >
-                  {day.date.getDate()}
-                </Text>
-                {hasCheckIn ? <View style={[styles.checkDot, checkIn?.trained && styles.checkDotTrained]} /> : null}
+                  <Text
+                    style={[
+                      styles.dayText,
+                      !day.inCurrentMonth && styles.dayTextMuted,
+                      checkIn?.trained && styles.dayTextTrained,
+                    ]}
+                  >
+                    {day.date.getDate()}
+                  </Text>
+                  {hasCheckIn ? <View style={[styles.checkDot, checkIn?.trained && styles.checkDotTrained]} /> : null}
+                </Pressable>
               </View>
             );
           })}
         </View>
+
+        {selectedDateKey ? (
+          <View style={styles.selectedCallout}>
+            <View style={styles.selectedCalloutHeader}>
+              <Text style={styles.selectedDate}>{formatLongDateLabel(selectedDateKey)}</Text>
+              <Text style={[styles.selectedStatus, selectedCheckIn?.trained && styles.selectedStatusTrained]}>
+                {selectedCheckIn ? (selectedCheckIn.trained ? "Treino" : "Descanso") : "Sem check-in"}
+              </Text>
+            </View>
+            <Text style={styles.selectedText}>
+              {selectedCheckIn
+                ? selectedCheckIn.trained
+                  ? formatTrainingActivities(selectedCheckIn.activities)
+                  : "Descanso registrado."
+                : "Nenhum check-in registrado nesta data."}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.legend}>
           <View style={styles.legendItem}>
@@ -214,21 +244,6 @@ export default function CheckInCalendarScreen() {
         </Card>
       ) : null}
 
-      <View style={styles.list}>
-        {checkIns.map((checkIn) => (
-          <Card key={checkIn.date} style={styles.checkInItem}>
-            <View style={styles.checkInItemHeader}>
-              <Text style={styles.checkInDate}>{formatDateLabel(checkIn.date)}</Text>
-              <Text style={[styles.checkInStatus, checkIn.trained && styles.checkInStatusTrained]}>
-                {checkIn.trained ? "Treino" : "Descanso"}
-              </Text>
-            </View>
-            <Text style={styles.checkInActivities}>
-              {checkIn.trained ? formatTrainingActivities(checkIn.activities) : "Descanso registrado."}
-            </Text>
-          </Card>
-        ))}
-      </View>
     </ScreenContainer>
   );
 }
@@ -300,7 +315,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     justifyContent: "center",
-    marginVertical: 3,
+    minHeight: 40,
+    width: "100%",
+  },
+  daySlot: {
+    padding: 3,
     width: `${100 / 7}%`,
   },
   dayCellMuted: {
@@ -316,6 +335,10 @@ const styles = StyleSheet.create({
   dayCellTrained: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  dayCellSelected: {
+    borderColor: colors.accent,
+    borderWidth: 2,
   },
   dayText: {
     color: colors.title,
@@ -337,6 +360,41 @@ const styles = StyleSheet.create({
   },
   checkDotTrained: {
     backgroundColor: colors.white,
+  },
+  selectedCallout: {
+    backgroundColor: "rgba(255, 255, 255, 0.72)",
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginTop: 14,
+    padding: 14,
+  },
+  selectedCalloutHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  selectedDate: {
+    color: colors.title,
+    flex: 1,
+    fontFamily: fontFamily.bold,
+    fontSize: 15,
+    textTransform: "capitalize",
+  },
+  selectedStatus: {
+    color: colors.accent,
+    fontFamily: fontFamily.extraBold,
+    fontSize: 12,
+  },
+  selectedStatusTrained: {
+    color: colors.primary,
+  },
+  selectedText: {
+    color: colors.textMuted,
+    fontFamily: fontFamily.semiBold,
+    lineHeight: 20,
+    marginTop: 6,
   },
   legend: {
     flexDirection: "row",
@@ -405,38 +463,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 6,
     textAlign: "center",
-  },
-  list: {
-    gap: 10,
-    marginTop: 14,
-  },
-  checkInItem: {
-    padding: 14,
-  },
-  checkInItemHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  checkInDate: {
-    color: colors.title,
-    fontFamily: fontFamily.bold,
-    fontSize: 16,
-  },
-  checkInStatus: {
-    color: colors.accent,
-    fontFamily: fontFamily.extraBold,
-    fontSize: 13,
-  },
-  checkInStatusTrained: {
-    color: colors.primary,
-  },
-  checkInActivities: {
-    color: colors.textMuted,
-    fontFamily: fontFamily.semiBold,
-    lineHeight: 20,
-    marginTop: 6,
   },
   error: {
     color: colors.danger,
